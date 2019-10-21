@@ -35,30 +35,32 @@ class ConvBlock(tf.keras.Model):
         # Convolution
         if sampling in ['up', 'max_pool', 'avg_pool', 'same', 'stride']:
             s = stride if sampling == 'stride' else 1
-            self.conv = tf.keras.layers.Conv2D(filters,
-                                               kernel_size,
-                                               strides=s,
-                                               dilation_rate=dilation_rate,
-                                               activation=None,
-                                               **conv_params)
+            conv = tf.keras.layers.Conv2D(filters,
+                                          kernel_size,
+                                          strides=s,
+                                          dilation_rate=dilation_rate,
+                                          activation=None,
+                                          **conv_params)
         elif sampling == 'deconv':
-            self.conv = tf.keras.layers.Conv2DTranspose(filters,
-                                                        kernel_size,
-                                                        strides=stride,
-                                                        dilation_rate=dilation_rate,
-                                                        activation=None,
-                                                        **conv_params)
+            conv = tf.keras.layers.Conv2DTranspose(filters,
+                                                   kernel_size,
+                                                   strides=stride,
+                                                   dilation_rate=dilation_rate,
+                                                   activation=None,
+                                                   **conv_params)
         elif sampling == 'subpixel':
-            self.conv = SubPixelConv2D(filters,
-                                       rate=2,
-                                       kernel_size=kernel_size,
-                                       activation=None,
-                                       **conv_params)
+            conv = SubPixelConv2D(filters,
+                                  rate=2,
+                                  kernel_size=kernel_size,
+                                  activation=None,
+                                  **conv_params)
         else:
             raise ValueError
 
         if spectral_norm:
-            self.conv = SpectralNorm(self.conv)
+            self.conv = SpectralNorm(conv)
+        else:
+            self.conv = conv
 
         # Normalization
         if normalization is not None:

@@ -19,10 +19,12 @@ class DenseBlock(tf.keras.Model):
                  **dense_params):
         super().__init__()
         self.units = units
-        self.dense = tf.keras.layers.Dense(units, **dense_params)
+        dense = tf.keras.layers.Dense(units, **dense_params)
 
         if spectral_norm:
             self.dense = SpectralNorm(self.dense)
+        else:
+            self.dense = dense
 
         # Normalization
         if normalization is not None:

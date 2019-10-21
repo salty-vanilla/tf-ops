@@ -84,7 +84,7 @@ class LayerNorm(tf.keras.layers.Layer):
         return input_shape
 
 
-class SpectralNorm(tf.keras.layers.Layer):
+class SpectralNorm(tf.keras.Model):
     def __init__(self, layer,
                  power_iteration=1,
                  initializer=tf.keras.initializers.TruncatedNormal(stddev=0.2)):
@@ -94,7 +94,6 @@ class SpectralNorm(tf.keras.layers.Layer):
         self.initializer = initializer
         self._is_set = False
 
-    def build(self, input_shape):
         if hasattr(self.layer, 'filters'):
             d = self.layer.filters
         elif hasattr(self.layer, 'units'):
@@ -102,14 +101,13 @@ class SpectralNorm(tf.keras.layers.Layer):
         else:
             raise AttributeError
         self.d = d
-        self.u = self.add_variable(shape=(1, d),
-                                   name='u',
-                                   initializer=self.initializer,
-                                   trainable=False)
-        self.sigma = self.add_variable(shape=(),
-                                       name='sigma',
-                                       initializer=tf.keras.initializers.Zeros(),
-                                       trainable=False)
+
+        self.u = tf.Variable(self.initializer(shape=(1, d)),
+                             trainable=False,
+                             name='u')
+        self.sigma = tf.Variable(0.,
+                                 trainable=False,
+                                 name='sigma')
 
     def call(self, inputs,
              training=None,
@@ -117,7 +115,6 @@ class SpectralNorm(tf.keras.layers.Layer):
         if not self._is_set:
             self.layer(inputs)
             self._is_set = True
-            
         if training:
             w = self.layer.kernel
             w_shape = w.shape.as_list()

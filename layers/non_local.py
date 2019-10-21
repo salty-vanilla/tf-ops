@@ -2,7 +2,7 @@ import tensorflow as tf
 from ops.layers.normalizations import SpectralNorm
 
 
-class NonLocal2D(tf.keras.layers.Layer):
+class NonLocal2D(tf.keras.Model):
     def __init__(self, filters,
                  initializer=tf.keras.initializers.Zeros()):
         super().__init__()
@@ -10,10 +10,9 @@ class NonLocal2D(tf.keras.layers.Layer):
         self.g = tf.keras.layers.Conv2D(filters//8, 1)
         self.h = tf.keras.layers.Conv2D(filters, 1)
         self.conv = tf.keras.layers.Conv2D(filters, 1)
-        self.gamma = self.add_variable(shape=(), 
-                                       name='gamme',
-                                       initializer=initializer,
-                                       trainable=True)
+        self.gamma = tf.Variable(0., 
+                                 name='gamma',
+                                 trainable=True)
 
         self.f = SpectralNorm(self.f)
         self.g = SpectralNorm(self.g)
