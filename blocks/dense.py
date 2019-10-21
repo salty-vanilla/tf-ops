@@ -22,7 +22,7 @@ class DenseBlock(tf.keras.Model):
         dense = tf.keras.layers.Dense(units, **dense_params)
 
         if spectral_norm:
-            self.dense = SpectralNorm(self.dense)
+            self.dense = SpectralNorm(dense)
         else:
             self.dense = dense
 
