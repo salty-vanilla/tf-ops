@@ -33,7 +33,7 @@ class InstanceNorm(tf.keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         x = inputs
-        mean, var = tf.nn.moments(x, [1, 2], keep_dims=True)
+        mean, var = tf.nn.moments(x, [1, 2], keepdims=True)
         return tf.nn.batch_normalization(x,
                                          mean,
                                          var,
@@ -72,7 +72,7 @@ class LayerNorm(tf.keras.layers.Layer):
     def call(self, inputs, **kwargs):
         x = inputs
         norm_axes = list(range(self.begin_norm_axis, self.input_rank))
-        mean, var = tf.nn.moments(inputs, norm_axes, keep_dims=True)
+        mean, var = tf.nn.moments(inputs, norm_axes, keepdims=True)
         return tf.nn.batch_normalization(x,
                                          mean,
                                          var,
