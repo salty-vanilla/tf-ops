@@ -44,16 +44,14 @@ def gradient_penalty(discriminator,
                      real,
                      fake):
     bs = real.get_shape().as_list()[0]
-    if len(real.get_shape().as_list()) == 4:
-        eps = tf.random_uniform(shape=[bs, 1, 1, 1],
-                                minval=0., maxval=1.)
-        reduction_indices = [1, 2, 3]
-    elif len(real.get_shape().as_list()) == 2:
-        eps = tf.random_uniform(shape=[bs, 1],
-                                minval=0., maxval=1.)
-        reduction_indices = [1]
-    else:
-        raise ValueError
+    uniform = tf.random.uniform if float(tf.__version__[0]) >= 2.0 else tf.random_uniform
+
+    eps = uniform(shape=(bs, ), 
+                  minval=0., maxval=1.)
+    for _ in range(len(real.get_shape().as_list()) - 1):
+        eps = tf.expand_dims(eps, axis=-1)
+
+    reduction_indices = list(range(1, len(real.get_shape().as_list())))
 
     differences = fake - real
     interpolates = real + (eps * differences)
