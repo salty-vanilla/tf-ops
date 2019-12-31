@@ -62,7 +62,7 @@ def gradient_penalty(discriminator,
                           training=True)
     grads = g.gradient(y, interpolates)
     slopes = tf.sqrt(tf.reduce_sum(tf.square(grads),
-                                   reduction_indices=reduction_indices))
+                                   axis=reduction_indices))
     gp = tf.reduce_mean(tf.square(slopes - 1.))
     return gp
 
