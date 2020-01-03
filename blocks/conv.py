@@ -114,7 +114,6 @@ class ResidualBlock(tf.keras.Model):
                                'same',
                                normalization,
                                spectral_norm,
-                               lr_equalization,
                                **conv_params)
         self.conv2 = ConvBlock(filters,
                                kernel_size,
@@ -123,10 +122,12 @@ class ResidualBlock(tf.keras.Model):
                                sampling,
                                normalization,
                                spectral_norm,
-                               lr_equalization,
                                **conv_params)
         self.act = activation_
-        self.shortcut_conv = tf.keras.layers.Conv2D(filters, (1, 1))
+        self.shortcut_conv = ConvBlock(filters,
+                                       (1, 1),
+                                       spectral_norm=spectral_norm,
+                                       **conv_params)
 
     def call(self, inputs,
              training=None,

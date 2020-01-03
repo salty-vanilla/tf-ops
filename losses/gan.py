@@ -31,11 +31,13 @@ def discriminator_loss(d_real,
     elif metrics in ['WD', 'wd']:
         return -(tf.reduce_mean(d_real) - tf.reduce_mean(d_fake))
     elif metrics in ['HINGE', 'hinge']:
-        real_loss = -tf.reduce_mean(tf.minimum(0, -1 + d_real))
-        fake_loss = -tf.reduce_mean(tf.minimum(0, -1 - d_fake))
+        real_loss = -tf.reduce_mean(tf.minimum(tf.constant(0., dtype=tf.float32), 
+                                               tf.constant(-1., dtype=tf.float32) + d_real))
+        fake_loss = -tf.reduce_mean(tf.minimum(tf.constant(0., dtype=tf.float32), 
+                                               tf.constant(-1., dtype=tf.float32) - d_fake))
         return real_loss + fake_loss
     elif metrics in ['LS', 'ls', 'PearsonChiSquared', 'PCS', 'pcs']:
-        return tf.reduce_mean((d_real-1)**2)/2 + tf.reduce_mean((d_fake+1)**2)/2
+        return tf.reduce_mean((d_real-1.)**2)/2. + tf.reduce_mean((d_fake+1)**2)/2
     else:
         raise ValueError
 

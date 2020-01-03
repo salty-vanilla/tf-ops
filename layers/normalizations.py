@@ -130,8 +130,8 @@ class SpectralNorm(tf.keras.Model):
                 u_ = tf.matmul(v_hat, w)
                 u_hat = tf.nn.l2_normalize(u_)
 
-            u_hat = tf.stop_gradient(u_hat)
-            v_hat = tf.stop_gradient(v_hat)
+            # u_hat = tf.stop_gradient(u_hat)
+            # v_hat = tf.stop_gradient(v_hat)
 
             sigma = tf.matmul(tf.matmul(v_hat, w), u_hat, transpose_b=True)
             sigma = tf.reshape(sigma, ())
