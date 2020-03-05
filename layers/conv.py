@@ -44,7 +44,7 @@ class SubPixelConv2D(tf.keras.layers.Conv2D):
         x = super().call(x)
         if self.activation:
             x = act(x, self.activation)
-        return tf.depth_to_space(x, self.rate)
+        return tf.nn.depth_to_space(x, self.rate)
 
     def compute_output_shape(self, input_shape):
         return input_shape[0], \

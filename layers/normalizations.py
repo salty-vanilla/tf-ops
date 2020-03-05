@@ -112,33 +112,38 @@ class SpectralNorm(tf.keras.Model):
     def call(self, inputs,
              training=None,
              **kwargs):
-        if not self._is_set:
-            self.layer(inputs)
-            self._is_set = True
-        if training:
-            w = self.layer.kernel
-            w_shape = w.shape.as_list()
-            w = tf.reshape(w, (-1, self.d))
+        with tf.init_scope():
+            if not self._is_set:
+                self.layer(inputs)
+                self._is_set = True
+            if training:
+                w = self.layer.kernel
+                w_shape = w.shape.as_list()
+                w = tf.reshape(w, (-1, self.d))
 
-            u_hat = self.u
-            v_hat = None
+                u_hat = self.u
+                v_hat = None
 
-            for _ in range(self.power_iteration):
-                v_ = tf.matmul(u_hat, w, transpose_b=True)
-                v_hat = tf.nn.l2_normalize(v_)
+                for _ in range(self.power_iteration):
+                    v_ = tf.matmul(u_hat, w, transpose_b=True)
+                    v_hat = self.l2_normalize(v_)
 
-                u_ = tf.matmul(v_hat, w)
-                u_hat = tf.nn.l2_normalize(u_)
+                    u_ = tf.matmul(v_hat, w)
+                    u_hat = self.l2_normalize(u_)
 
-            # u_hat = tf.stop_gradient(u_hat)
-            # v_hat = tf.stop_gradient(v_hat)
+                # u_hat = tf.stop_gradient(u_hat)
+                # v_hat = tf.stop_gradient(v_hat)
 
-            sigma = tf.matmul(tf.matmul(v_hat, w), u_hat, transpose_b=True)
-            sigma = tf.reshape(sigma, ())
-            self.u = u_hat
-            self.sigma = sigma
+                sigma = tf.matmul(tf.matmul(v_hat, w), u_hat, transpose_b=True)
+                sigma = tf.reshape(sigma, ())
+                self.u = u_hat
+                self.sigma = sigma
 
         return self.layer(inputs, **kwargs) / (self.sigma + K.epsilon())
 
     def compute_output_shape(self, input_shape):
         return input_shape
+
+    @staticmethod
+    def l2_normalize(x):
+        return x / tf.sqrt(tf.math.maximum(tf.reduce_sum(x**2), tf.keras.backend.epsilon()))

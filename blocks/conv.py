@@ -22,7 +22,7 @@ class ConvBlock(tf.keras.Model):
                  **conv_params):
         conv_params.setdefault('padding', 'same')
         super().__init__()
-
+        self.sampling = sampling
         stride = 1 if sampling in ['same',
                                    'subpixel',
                                    'max_pool',
@@ -84,13 +84,22 @@ class ConvBlock(tf.keras.Model):
     def call(self, inputs,
              training=None,
              mask=None):
+        x = inputs
+        if self.sampling == 'up':
+            x = tf.keras.layers.UpSampling2D(2)(x)
+
         if self.is_feed_training:
-            x = self.conv(inputs, training=training)
+            x = self.conv(x, training=training)
         else:
-            x = self.conv(inputs)
+            x = self.conv(x)
         if self.norm is not None:
             x = self.norm(x, training=training)
         x = activation(x, self.act)
+
+        if self.sampling == 'max_pool':
+            x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+        elif self.sampling == 'avg_pool':
+            x = tf.keras.layers.AveragePooling2D((2, 2))(x)
         return x
 
 
