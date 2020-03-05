@@ -174,3 +174,73 @@ class MomentShortcut(tf.keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape
+
+
+class SwitchNorm(tf.keras.layers.Layer):
+    def __init__(self, momentum=0.99,
+                 beta_initializer='zeros',
+                 gamma_initializer='ones',
+                 moving_mean_initializer='zeros',
+                 moving_var_initializer='ones'):
+        super().__init__()
+        self.momentum = tf.constant(momentum, dtype=tf.float32)
+        self.beta_initializer = beta_initializer
+        self.gamma_initializer = gamma_initializer
+        self.moving_mean_initializer = moving_mean_initializer
+        self.moving_var_initializer = moving_var_initializer        
+
+    def build(self, input_shape):
+        self.gamma = self.add_weight(shape=(input_shape[-1]),
+                                     name='gamma',
+                                     initializer=self.gamma_initializer)
+        self.beta = self.add_weight(shape=(input_shape[-1]),
+                                    name='beta',
+                                    initializer=self.beta_initializer)
+
+        self.mean_weight = self.add_weight(shape=(3),
+                                           name='mean_weight',
+                                           initializer='ones')
+        self.var_weight = self.add_weight(shape=(3),
+                                          name='var_weight',
+                                          initializer='ones')
+
+        self.moving_mean =  self.add_weight(shape=(*[1 for _ in range(len(input_shape)-1)], input_shape[-1]),
+                                            name='moving_mean',
+                                            initializer=self.moving_mean_initializer,
+                                            trainable=False)
+        self.moving_var =  self.add_weight(shape=(*[1 for _ in range(len(input_shape)-1)], input_shape[-1]),
+                                           name='moving_var',
+                                           initializer=self.moving_var_initializer,
+                                           trainable=False)
+
+    def call(self, inputs, 
+             training=None,
+             **kwargs):
+        x = inputs
+        if training:
+            batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], keep_dims=True)
+            tf.assign(self.moving_mean,
+                      self.momentum*self.moving_mean + (1.-self.momentum)*batch_mean)
+            tf.assign(self.moving_var,
+                      self.momentum*self.moving_var + (1.-self.momentum)*batch_var) 
+        else:
+            batch_mean = self.moving_mean
+            batch_var = self.moving_var
+                            
+        instance_mean, instance_var = tf.nn.moments(x, [1, 2], keep_dims=True)
+        layer_mean, layer_var = tf.nn.moments(x, [1, 2, 3], keep_dims=True)
+
+        mean_weight = tf.nn.softmax(self.mean_weight)
+        var_weight = tf.nn.softmax(self.var_weight)
+
+        mean = mean_weight[0]*batch_mean + mean_weight[1]*instance_mean + mean_weight[2]*layer_mean
+        var = var_weight[0]*batch_var + var_weight[1]*instance_var + var_weight[2]*layer_var
+        return tf.nn.batch_normalization(x,
+                                         mean,
+                                         var,
+                                         offset=self.beta,
+                                         scale=self.gamma,
+                                         variance_epsilon=K.epsilon())
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
