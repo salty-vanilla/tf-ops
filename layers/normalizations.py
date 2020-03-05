@@ -147,3 +147,30 @@ class SpectralNorm(tf.keras.Model):
     @staticmethod
     def l2_normalize(x):
         return x / tf.sqrt(tf.math.maximum(tf.reduce_sum(x**2), tf.keras.backend.epsilon()))
+
+
+class PositionalNormalization(tf.keras.layers.Layer):
+    def __init__(self):
+        super().__init__()
+
+    def call(self, inputs, **kwargs):
+        x = inputs
+        mean, var = tf.nn.moments(x, [3], keep_dims=True)
+        std = tf.sqrt(var + K.epsilon())
+        output = (x - mean) / std
+        return output, mean, std
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+
+class MomentShortcut(tf.keras.layers.Layer):
+    def __init__(self):
+        super().__init__()
+
+    def call(self, inputs, **kwargs):
+        x, beta, gamma = inputs
+        return x*gamma + beta
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
