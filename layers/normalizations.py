@@ -136,8 +136,8 @@ class SpectralNorm(tf.keras.Model):
 
                 sigma = tf.matmul(tf.matmul(v_hat, w), u_hat, transpose_b=True)
                 sigma = tf.reshape(sigma, ())
-                self.u = u_hat
-                self.sigma = sigma
+                self.u.assign(u_hat)
+                self.sigma.assign(sigma)
 
         return self.layer(inputs, **kwargs) / (self.sigma + K.epsilon())
 
