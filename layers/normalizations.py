@@ -219,10 +219,8 @@ class SwitchNorm(tf.keras.layers.Layer):
         x = inputs
         if training:
             batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], keep_dims=True)
-            tf.assign(self.moving_mean,
-                      self.momentum*self.moving_mean + (1.-self.momentum)*batch_mean)
-            tf.assign(self.moving_var,
-                      self.momentum*self.moving_var + (1.-self.momentum)*batch_var) 
+            self.moving_mean.assign(self.momentum*self.moving_mean + (1.-self.momentum)*batch_mean)
+            self.moving_var.assign(self.momentum*self.moving_var + (1.-self.momentum)*batch_var) 
         else:
             batch_mean = self.moving_mean
             batch_var = self.moving_var
