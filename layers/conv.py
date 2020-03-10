@@ -1,5 +1,5 @@
 import tensorflow as tf
-from ops.layers import activation as act
+from layers import activation as act
 
 
 class SubPixelConv2D(tf.keras.layers.Conv2D):

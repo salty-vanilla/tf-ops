@@ -1,8 +1,15 @@
-from ops.layers.activations import *
-from ops.layers.conv import *
-from ops.layers.normalizations import *
-from ops.layers.core import *
-from ops.layers.pools import *
-from ops.layers.upsampling import *
-from ops.layers.resize import *
-from ops.layers.gan import *
+import os
+import sys
+import pathlib
+
+current_dir = pathlib.Path(__file__).resolve().parent
+sys.path.append(os.path.join(current_dir.parent))
+
+from layers.activations import *
+from layers.conv import *
+from layers.normalizations import *
+from layers.core import *
+from layers.pools import *
+from layers.upsampling import *
+from layers.resize import *
+from layers.gan import *

@@ -1,14 +1,7 @@
 import tensorflow as tf
-import os
-import sys
-import pathlib
-
-current_dir = pathlib.Path(__file__).resolve().parent
-sys.path.append(os.path.join(current_dir, '../'))
-
-from ops.layers.activations import activation
-from ops.layers.conv import SubPixelConv2D
-from ops.layers.normalizations import *
+from layers.activations import activation
+from layers.conv import SubPixelConv2D
+from layers.normalizations import *
 
 
 class DenseBlock(tf.keras.Model):
