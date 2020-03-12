@@ -1,5 +1,5 @@
 import tensorflow as tf
-from ops.layers.normalizations import SpectralNorm
+from layers.normalizations import SpectralNorm
 
 
 class NonLocal2D(tf.keras.Model):

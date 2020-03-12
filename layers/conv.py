@@ -1,5 +1,5 @@
 import tensorflow as tf
-from ops.layers import activation as act
+from layers import Activation
 
 
 class SubPixelConv2D(tf.keras.layers.Conv2D):
@@ -43,7 +43,7 @@ class SubPixelConv2D(tf.keras.layers.Conv2D):
         x = inputs
         x = super().call(x)
         if self.activation:
-            x = act(x, self.activation)
+            x = Activation(self.activation)(x)
         return tf.nn.depth_to_space(x, self.rate)
 
     def compute_output_shape(self, input_shape):

@@ -1,17 +1,10 @@
 import tensorflow as tf
-import os
-import sys
-import pathlib
-
-current_dir = pathlib.Path(__file__).resolve().parent
-sys.path.append(os.path.join(current_dir, '../'))
-
-from ops.layers.activations import activation
-from ops.layers.conv import SubPixelConv2D
-from ops.layers.normalizations import *
+from layers.activations import Activation
+from layers.conv import SubPixelConv2D
+from layers.normalizations import *
 
 
-class ConvBlock(tf.keras.Model):
+class ConvBlock(tf.keras.Sequential):
     def __init__(self, filters,
                  kernel_size=(3, 3),
                  activation_=None,
@@ -32,6 +25,10 @@ class ConvBlock(tf.keras.Model):
         if 'stride' in conv_params:
             stride = conv_params['stride']
 
+        # Upsampling
+        if sampling == 'up':
+            self.add(tf.keras.layers.UpSampling2D(2))
+    
         # Convolution
         if sampling in ['up', 'max_pool', 'avg_pool', 'same', 'stride']:
             s = stride if sampling == 'stride' else 1
@@ -58,49 +55,31 @@ class ConvBlock(tf.keras.Model):
             raise ValueError
 
         if spectral_norm:
-            self.conv = SpectralNorm(conv)
-        else:
-            self.conv = conv
+            conv = SpectralNorm(conv)
 
-        # Normalization
+        self.add(conv)
+
+         # Normalization
         if normalization is not None:
             if normalization == 'batch':
-                self.norm = tf.keras.layers.BatchNormalization()
+                norm = tf.keras.layers.BatchNormalization()
             elif normalization == 'layer':
-                self.norm = LayerNorm()
+                norm = LayerNorm()
             elif normalization == 'instance':
-                self.norm = InstanceNorm()
+                norm = InstanceNorm()
             elif normalization == 'pixel':
-                self.norm = PixelNorm()
+                norm = PixelNorm()
             else:
                 raise ValueError
-        else:
-            self.norm = None
+            self.add(norm)
 
-        self.act = activation_
+        self.add(Activation(activation_))
 
-        self.is_feed_training = spectral_norm
-
-    def call(self, inputs,
-             training=None,
-             mask=None):
-        x = inputs
-        if self.sampling == 'up':
-            x = tf.keras.layers.UpSampling2D(2)(x)
-
-        if self.is_feed_training:
-            x = self.conv(x, training=training)
-        else:
-            x = self.conv(x)
-        if self.norm is not None:
-            x = self.norm(x, training=training)
-        x = activation(x, self.act)
-
-        if self.sampling == 'max_pool':
-            x = tf.keras.layers.MaxPooling2D((2, 2))(x)
-        elif self.sampling == 'avg_pool':
-            x = tf.keras.layers.AveragePooling2D((2, 2))(x)
-        return x
+        # Pooling
+        if sampling == 'max_pool':
+            self.add(tf.keras.layers.MaxPooling2D(2))
+        elif sampling == 'avg_pool':
+            self.add(tf.keras.layers.AveragePooling2D(2))
 
 
 class ResidualBlock(tf.keras.Model):

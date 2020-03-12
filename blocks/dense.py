@@ -1,17 +1,10 @@
 import tensorflow as tf
-import os
-import sys
-import pathlib
-
-current_dir = pathlib.Path(__file__).resolve().parent
-sys.path.append(os.path.join(current_dir, '../'))
-
-from ops.layers.activations import activation
-from ops.layers.conv import SubPixelConv2D
-from ops.layers.normalizations import *
+from layers.activations import Activation
+from layers.conv import SubPixelConv2D
+from layers.normalizations import *
 
 
-class DenseBlock(tf.keras.Model):
+class DenseBlock(tf.keras.Sequential):
     def __init__(self, units,
                  activation_=None,
                  normalization=None,
@@ -22,37 +15,22 @@ class DenseBlock(tf.keras.Model):
         dense = tf.keras.layers.Dense(units, **dense_params)
 
         if spectral_norm:
-            self.dense = SpectralNorm(dense)
-        else:
-            self.dense = dense
+            dense = SpectralNorm(dense)
+        self.add(dense)
 
         # Normalization
         if normalization is not None:
             if normalization == 'batch':
-                self.norm = tf.keras.layers.BatchNormalization()
+                norm = tf.keras.layers.BatchNormalization()
             elif normalization == 'layer':
-                self.norm = LayerNorm()
+                norm = LayerNorm()
             elif normalization == 'instance':
-                self.norm = None
+                norm = None
             elif normalization == 'pixel':
-                self.norm = None
+                norm = None
             else:
                 raise ValueError
-        else:
-            self.norm = None
+        if norm:
+            self.add(norm)
 
-        self.act = activation_
-
-        self.is_feed_training = spectral_norm
-
-    def call(self, inputs,
-             training=None,
-             mask=None):
-        if self.is_feed_training:
-            x = self.dense(inputs, training=training)
-        else:
-            x = self.dense(inputs)
-        if self.norm is not None:
-            x = self.norm(x, training=training)
-        x = activation(x, self.act)
-        return x
+        self.add(Activation(activation_))
