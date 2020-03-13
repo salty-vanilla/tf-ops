@@ -30,7 +30,6 @@ class DenseBlock(tf.keras.Sequential):
                 norm = None
             else:
                 raise ValueError
-        if norm:
             self.add(norm)
 
         self.add(Activation(activation_))
