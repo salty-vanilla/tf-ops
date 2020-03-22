@@ -127,7 +127,7 @@ class ResidualBlock(tf.keras.Model):
             x += self.shortcut(self.shortcut_conv(inputs))
         else:
             x += self.shortcut(inputs)
-        x = activation(x, self.act)
+        x = Activation(self.act)(x)
         return x
 
     def shortcut(self, x):
