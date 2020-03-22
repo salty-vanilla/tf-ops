@@ -9,6 +9,7 @@ class DenseBlock(tf.keras.Sequential):
                  activation_=None,
                  normalization=None,
                  spectral_norm=False,
+                 norm_params={},
                  **dense_params):
         super().__init__()
         self.units = units
@@ -21,9 +22,9 @@ class DenseBlock(tf.keras.Sequential):
         # Normalization
         if normalization is not None:
             if normalization == 'batch':
-                norm = tf.keras.layers.BatchNormalization()
+                norm = tf.keras.layers.BatchNormalization(**norm_params)
             elif normalization == 'layer':
-                norm = LayerNorm()
+                norm = LayerNorm(**norm_params)
             elif normalization == 'instance':
                 norm = None
             elif normalization == 'pixel':

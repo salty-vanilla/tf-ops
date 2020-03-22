@@ -12,6 +12,7 @@ class ConvBlock(tf.keras.Sequential):
                  sampling='same',
                  normalization=None,
                  spectral_norm=False,
+                 norm_params={},
                  **conv_params):
         conv_params.setdefault('padding', 'same')
         super().__init__()
@@ -62,13 +63,13 @@ class ConvBlock(tf.keras.Sequential):
          # Normalization
         if normalization is not None:
             if normalization == 'batch':
-                norm = tf.keras.layers.BatchNormalization()
+                norm = tf.keras.layers.BatchNormalization(**norm_params)
             elif normalization == 'layer':
-                norm = LayerNorm()
+                norm = LayerNorm(**norm_params)
             elif normalization == 'instance':
-                norm = InstanceNorm()
+                norm = InstanceNorm(**norm_params)
             elif normalization == 'pixel':
-                norm = PixelNorm()
+                norm = PixelNorm(**norm_params)
             else:
                 raise ValueError
             self.add(norm)
