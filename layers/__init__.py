@@ -13,3 +13,4 @@ from layers.pools import *
 from layers.upsampling import *
 from layers.resize import *
 from layers.gan import *
+from layers.rl import *
